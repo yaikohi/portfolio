@@ -2,5 +2,12 @@
     display: flex;
     width: 100%;
     height: auto;
-    align-items: right;
+    justify-content: space-between;
+    align-items: center;
+    background-color: black;
+    color: white;
+}
+
+.link {
+    padding: 0rem 2rem;
 }

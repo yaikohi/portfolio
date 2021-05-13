@@ -1,12 +1,9 @@
-import styles from '../styles/Contact.module.css'
-
-import { Navbar } from '../components/Navbar/Navbar'
+import styles from "../styles/Contact.module.css";
 
 export default function Contact() {
   return (
-  <div>
+    <div>
       <h1> Contact me </h1>
-      <Navbar />
-  </div>
-  )
+    </div>
+  );
 }
