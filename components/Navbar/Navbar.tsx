@@ -8,19 +8,19 @@ interface NavbarProps {
 export const Navbar = ({ links }: NavbarProps) => {
   return (
     <div className={styles.Navbar}>
-      <h1>Navbar</h1>
+      <h1>v3</h1>
       <ul>
         <Link passHref href="/">
-          <a className={styles.link}>Home</a>
+          <a>Home</a>
         </Link>
         <Link passHref href="/about">
-          <a className={styles.link}>About</a>
+          <a>About</a>
         </Link>
         <Link passHref href="/work">
-          <a className={styles.link}>Work</a>
+          <a>Work</a>
         </Link>
         <Link passHref href="/contact">
-          <a className={styles.link}>Contact</a>
+          <a>Contact</a>
         </Link>
       </ul>
     </div>
