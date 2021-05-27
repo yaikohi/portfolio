@@ -1,0 +1,24 @@
+.coin {
+    color: white;
+    display: flex;
+    flex-direction: row;
+    border-color: azure;
+}
+
+.title {
+    margin: 10px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: grey;
+    width: 190px;
+
+}
+
+.list {
+    width: 230px;
+    margin: 10px;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: black;
+    list-style: none;
+}
