@@ -5,7 +5,7 @@ interface FooterProps {
   content?: [];
 }
 
-export const Footer = ({ content }: FooterProps) => {
+export const Footer = ({ ...props }: FooterProps) => {
   return (
     <div className={styles.Footer}>
       <p>Erik Beem 2021 All Rights Reserved</p>

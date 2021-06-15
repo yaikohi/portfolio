@@ -5,7 +5,7 @@ interface NavbarProps {
   links?: [];
 }
 
-export const Navbar = ({ links }: NavbarProps) => {
+export const Navbar = ({ ...props }: NavbarProps) => {
   return (
     <div className={styles.Navbar}>
       <h1>v3</h1>
