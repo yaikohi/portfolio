@@ -12,6 +12,8 @@ export const CoinList = ({ coins }: CoinListProps) => {
       {coins.map((coin) => {
         return (
           <Coin
+          // Because every item in a list should have a unique 'key' prop
+            key={coin.id} 
             name={coin.name}
             symbol={coin.symbol}
             current_price={coin.current_price}
