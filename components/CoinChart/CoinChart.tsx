@@ -1,18 +1,21 @@
 import React, { useRef } from "react";
 import { Line } from "react-chartjs-2";
-
-interface CoinDetailsProps {
+import styles from "./CoinChart.module.css";
+interface CoinChartProps {
   price: any;
   data: any;
 }
-export function CoinDetails({ price, data }: CoinDetailsProps) {
+export function CoinChart({ price, data }: CoinChartProps) {
   const opts = {
+    animation: {
+      duration: 0
+    },
     tooltips: {
       intersect: false,
       mode: "index",
     },
     responsive: true,
-    maintainAspectRatio: true,
+    maintainAspectRatio: false,
     options: {
       transitions: {
         plugins: {
@@ -28,12 +31,13 @@ export function CoinDetails({ price, data }: CoinDetailsProps) {
     return <p>please select a currency pair</p>;
   }
   return (
-    <div className="dashboard">
-      <h2>{`${price}`}</h2>
-
-      <div className="chart-container">
-        {/* https://stackoverflow.com/questions/67618984/react-typescript-chart-js-error-type-is-missing-in-type */}
-        <Line type="line" data={data} options={opts} />
+    <div className={styles.CoinChart__container}>
+      <div className={styles.CoinChart__price}>
+        <h2>{`${price}`}</h2>
+        <div className={styles.CoinChart__chart}>
+          {/* https://stackoverflow.com/questions/67618984/react-typescript-chart-js-error-type-is-missing-in-type */}
+          <Line type="line" data={data} options={opts} />
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 
-export const formatData = (data: any) => {
+export const formatChartData = (data: any) => {
     let finalData = {
       labels: [],
       datasets: [

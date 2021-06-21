@@ -6,10 +6,10 @@ import { useEffect, useState, useRef, SyntheticEvent } from "react";
 // import io from "socket.io";
 
 import { CoinList } from "../CoinList/CoinList";
-import { CoinDetails } from "../CoinChart/CoinChart";
+import { CoinChart } from "../CoinChart/CoinChart";
 import { SearchBar } from "../SearchBar/SearchBar";
 import { useSWRFetch } from "../util/fetchData";
-import { formatData } from "../util/formatData";
+import { formatChartData } from "../util/formatChartData";
 import styles from "./Dashboard.module.css";
 
 export default function Dashboard() {
@@ -26,29 +26,31 @@ export default function Dashboard() {
   let first = useRef(false);
   const socket = useRef(null);
 
-  const [currencies, setcurrencies] = useState([]); // all the currencies
-  const [coinId, setCoinId] = useState(""); // the coin to be selected
   const [price, setprice] = useState("0.00"); // the price of the selected coin
   const [pastData, setpastData] = useState({}); // for the initial render
 
   const { coins, isLoading, isError } = useSWRFetch(CoinGeckoApiUrl);
 
+  const [coinId, setCoinId] = useState(""); // the coin to be selected
+  const [currencies, setcurrencies] = useState([]); // all the currencies
+
   useEffect(() => {
     socket.current = new WebSocket(wsUrl);
+
+    // ? COLLECTS THE COIN PAIRS THROUGH AN API CALL
     let pairs = [];
 
     const fetchPairs = async () => {
       await fetch(apiUrl + "/products")
         .then((res) => res.json())
         .then((data) => (pairs = data));
-      console.log(pairs);
 
       let filtered = pairs.filter((coinId) => {
         if (coinId.quote_currency === "EUR") {
           return coinId;
         }
       });
-
+      // ? FILTERS THE COIN PAIRS
       filtered = filtered.sort((a, b) => {
         if (a.base_currency < b.base_currency) {
           return -1;
@@ -58,59 +60,67 @@ export default function Dashboard() {
         }
         return 0;
       });
+      // ? ADDS THE FILTERED COIN PAIRS TO THE CURRENCIES STATE
       setcurrencies(filtered);
+      // ? SETS THE FIRST.CURRENT VARIABLE TO TRUE BC WE HAVE THE INITIAL STATE READIED UP
       first.current = true;
     };
+    // ? FUNCTION CALL
     fetchPairs();
   }, []);
 
   useEffect(() => {
+    // ? IF FIRST.CURRENT = FALSE; initializes the first render
     if (!first.current) {
       console.log("returning to the first render");
       return;
+    } else {
+      // ? LIST OF CURRENCY ID'S TO SUBSCRIBE TO
+      let currenciesList = [];
+      currencies.map((currency) => {
+        currenciesList.push(currency.id);
+      });
+
+      // ? SUBSCRIPTION MESSAGE TO THE COINBASE WEBSOCKET
+      let wsSubMsg = {
+        type: "subscribe",
+        product_ids: currenciesList,
+        channels: ["ticker"],
+      };
+
+      // ? JSONIFIED MESSAGE
+      let jsonWsSubMsg = JSON.stringify(wsSubMsg);
+
+      // ? SENDING THE MESSAGE
+      socket.current.send(jsonWsSubMsg);
+
+      // ? SAVING THE HISTORICAL PRICE DATA OF A COIN
+      let historicalDataURL = `${apiUrl}/products/${coinId}/candles?granularity=86400`;
+      const fetchHistoricalData = async () => {
+        let dataArr = [];
+        await fetch(historicalDataURL)
+          .then((res) => res.json())
+          .then((data) => (dataArr = data));
+
+        let formattedData = formatChartData(dataArr);
+        setpastData(formattedData);
+      };
+
+      fetchHistoricalData();
+
+      // ? WHEN
+      socket.current.onmessage = (e) => {
+        let data = JSON.parse(e.data);
+        if (data.type !== "ticker") {
+          console.log("non-ticker event", e);
+          return;
+        }
+
+        if (data.product_id === coinId) {
+          setprice(data.price);
+        }
+      };
     }
-    // subscription to the coinbase websocket
-    let currenciesList = [];
-    currencies.map((currency) => {
-      currenciesList.push(currency.id);
-    });
-
-    // console.log(currenciesList)
-
-    let wsSubMsg = {
-      type: "subscribe",
-      product_ids: currenciesList,
-      channels: ["ticker"],
-    };
-
-    let jsonWsSubMsg = JSON.stringify(wsSubMsg);
-
-    socket.current.send(jsonWsSubMsg);
-
-    let historicalDataURL = `${apiUrl}/products/${coinId}/candles?granularity=86400`;
-    const fetchHistoricalData = async () => {
-      let dataArr = [];
-      await fetch(historicalDataURL)
-        .then((res) => res.json())
-        .then((data) => (dataArr = data));
-
-      let formattedData = formatData(dataArr);
-      setpastData(formattedData);
-    };
-
-    fetchHistoricalData();
-
-    socket.current.onmessage = (e) => {
-      let data = JSON.parse(e.data);
-      if (data.type !== "ticker") {
-        console.log("non-ticker event", e);
-        return;
-      }
-
-      if (data.product_id === coinId) {
-        setprice(data.price);
-      }
-    };
   }, [coinId]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -120,43 +130,40 @@ export default function Dashboard() {
       channels: ["ticker"],
     };
     let unsub = JSON.stringify(unsubMsg);
-
     socket.current.send(unsub);
-
     setCoinId(e.target.value);
   };
 
   if (isLoading) return <div>Loading...</div>;
-
   if (isError) return <div>Error... </div>;
 
-  if (coins)
-    return (
-      <div className={styles.container}>
-        <div>
-        {
-            <select
-              placeholder="Select a crypto/fiat pair..."
-              name="currency"
-              value={coinId}
-              onChange={handleSelect}
-            >
-              {currencies.map((cur, idx) => {
-                return (
-                  <option key={idx} value={cur.id}>
-                    {cur.display_name}
-                  </option>
-                );
-              })}
-            </select>
-          }
-        </div>
-        <div>
-          <CoinDetails price={price} data={pastData} />
-        </div>
-        <div className={styles.Dashboard}>
-          <CoinList coins={coins} />
-        </div>
+  return (
+    <div className={styles.container}>
+      {
+        <select
+          placeholder="Select a crypto/fiat pair..."
+          name="currency"
+          value={coinId}
+          onChange={handleSelect}
+        >
+          <option value="" disabled selected>
+            Select a crypto-pair
+          </option>
+          {currencies.map((cur, idx) => {
+            return (
+              <>
+                <option key={idx} value={cur.id}>
+                  {cur.display_name}
+                </option>
+              </>
+            );
+          })}
+        </select>
+      }
+      <div className={styles.Dashboard}>
+        <CoinChart price={price} data={pastData} />
+        <CoinList coins={coins} />
       </div>
-    );
+    </div>
+  );
 }
