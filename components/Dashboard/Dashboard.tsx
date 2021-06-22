@@ -137,7 +137,7 @@ export default function Dashboard() {
   if (isError) return <div>Error... </div>;
 
   return (
-    <div className={styles.container}>
+      <div className={styles.Dashboard}>
       {
         <select
           className={styles.select}
@@ -160,10 +160,8 @@ export default function Dashboard() {
           })}
         </select>
       }
-      <div className={styles.Dashboard}>
         <CoinChart price={price} data={pastData} />
         <CoinList coins={coins} />
       </div>
-    </div>
   );
 }

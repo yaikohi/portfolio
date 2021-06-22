@@ -8,6 +8,8 @@ interface CoinChartProps {
 
 // TODO make a chart zoomable for possible improved readability https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html
 export function CoinChart({ price, data }: CoinChartProps) {
+  // ? Displays a graph based on coin-`data` and displays the coin-`price`.
+  // ? `opts` tweaks the chartjs linechart
   const opts = {
     animation: {
       duration: 0,
@@ -19,8 +21,10 @@ export function CoinChart({ price, data }: CoinChartProps) {
     responsive: true,
     maintainAspectRatio: false,
   };
+
   if (price === "0.00") {
-    return <><p>Select a coin.</p> </>;
+    // ? User needs to select a coin in the dashboard-parent component before the graph+price can be rendered.
+    return <><p>Please elect a coin.</p> </>;
   }
   return (
     <div className={styles.container}>
