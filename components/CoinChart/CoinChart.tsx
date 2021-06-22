@@ -1,14 +1,16 @@
-import React, { useRef } from "react";
+import React from "react";
 import { Line } from "react-chartjs-2";
-import styles from "./CoinChart.module.css";
+import styles from "./CoinChart.module.scss";
 interface CoinChartProps {
   price: any;
   data: any;
 }
+
+// TODO make a chart zoomable for possible improved readability https://www.chartjs.org/chartjs-plugin-zoom/guide/options.html
 export function CoinChart({ price, data }: CoinChartProps) {
   const opts = {
     animation: {
-      duration: 0
+      duration: 0,
     },
     tooltips: {
       intersect: false,
@@ -16,25 +18,15 @@ export function CoinChart({ price, data }: CoinChartProps) {
     },
     responsive: true,
     maintainAspectRatio: false,
-    options: {
-      transitions: {
-        plugins: {
-          title: {
-            display: true,
-            text: "Cryptic graph",
-          },
-        },
-      },
-    },
   };
   if (price === "0.00") {
-    return <p>please select a currency pair</p>;
+    return <><p>Select a coin.</p> </>;
   }
   return (
-    <div className={styles.CoinChart__container}>
-      <div className={styles.CoinChart__price}>
+    <div className={styles.container}>
+      <div className={styles.price}>
         <h2>{`${price}`}</h2>
-        <div className={styles.CoinChart__chart}>
+        <div className={styles.chart}>
           {/* https://stackoverflow.com/questions/67618984/react-typescript-chart-js-error-type-is-missing-in-type */}
           <Line type="line" data={data} options={opts} />
         </div>
