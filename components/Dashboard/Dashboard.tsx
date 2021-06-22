@@ -1,28 +1,30 @@
-//  * https://github.com/renaissancetroll/reactjs-crypto-api-dashboard/blob/master/src/App.js
+// * https://github.com/renaissancetroll/reactjs-crypto-api-dashboard/blob/master/src/App.js
 // * for connecting to a coinbase websocket in a react project
 
+// TODO - Fix the connecting issue (send method not allowed bc websocket is still connecting)
+// TODO - Configure proper dates for the chart
+// TODO - Make the chart look prettier.
+// TODO - Make the page work.tsx look prettier. Split the list and charts. Design UI/UX.
+
 // using useRef hooks to update a variable without reloading the component: https://www.smashingmagazine.com/2020/11/react-useref-hook/
-import { useEffect, useState, useRef, SyntheticEvent } from "react";
-// import io from "socket.io";
+import { useEffect, useState, useRef } from "react";
 
 import { CoinList } from "../CoinList/CoinList";
 import { CoinChart } from "../CoinChart/CoinChart";
-import { SearchBar } from "../SearchBar/SearchBar";
 import { useSWRFetch } from "../util/fetchData";
 import { formatChartData } from "../util/formatChartData";
-import styles from "./Dashboard.module.css";
+import styles from "./Dashboard.module.scss";
 
 export default function Dashboard() {
   const CoinGeckoApiUrl =
     "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&ids=ethereum%2C%20cardano%2C%20xrp%2C%20polkadot%2C%20litecoin%2C%20dash%2C%20chainlink%2C%20vechain%2C%20tron&order=market_cap_desc&per_page=100&page=1&sparkline=false";
 
-  // Two different URLS; one for the coinbase API & one for the coinbase WSS
+  // ? Two different URLS; one for the coinbase API & one for the coinbase WSS
   const apiUrl = "https://api.pro.coinbase.com";
-
   const wsUrl = "wss://ws-feed.pro.coinbase.com";
 
-  // the ref 'first' will prevent the first api call
-  // socket is our websocket reference
+  // ! the ref 'first' should prevent the first websocket call
+  // ? socket is our websocket reference
   let first = useRef(false);
   const socket = useRef(null);
 
@@ -44,25 +46,24 @@ export default function Dashboard() {
       await fetch(apiUrl + "/products")
         .then((res) => res.json())
         .then((data) => (pairs = data));
-
-      let filtered = pairs.filter((coinId) => {
-        if (coinId.quote_currency === "EUR") {
-          return coinId;
+      // ? Only save the currencies that pair with EUR
+      let filtered = pairs.filter((coin) => {
+        if (coin.quote_currency === "EUR") {
+          return coin;
         }
       });
-      // ? FILTERS THE COIN PAIRS
-      filtered = filtered.sort((a, b) => {
-        if (a.base_currency < b.base_currency) {
+      // ? FILTERS THE COIN PAIRS ALPHABETICALLY
+      filtered = filtered.sort((firstEl, secondEl) => {
+        if (firstEl.base_currency < secondEl.base_currency) {
           return -1;
         }
-        if (a.base_currency > b.base_currency) {
+        if (firstEl.base_currency > secondEl.base_currency) {
           return 1;
         }
         return 0;
       });
       // ? ADDS THE FILTERED COIN PAIRS TO THE CURRENCIES STATE
       setcurrencies(filtered);
-      // ? SETS THE FIRST.CURRENT VARIABLE TO TRUE BC WE HAVE THE INITIAL STATE READIED UP
       first.current = true;
     };
     // ? FUNCTION CALL
@@ -88,34 +89,39 @@ export default function Dashboard() {
         channels: ["ticker"],
       };
 
-      // ? JSONIFIED MESSAGE
-      let jsonWsSubMsg = JSON.stringify(wsSubMsg);
-
       // ? SENDING THE MESSAGE
-      socket.current.send(jsonWsSubMsg);
+      socket.current.onopen = () => {
+        socket.current.send(JSON.stringify(wsSubMsg));
+      };
 
       // ? SAVING THE HISTORICAL PRICE DATA OF A COIN
-      let historicalDataURL = `${apiUrl}/products/${coinId}/candles?granularity=86400`;
       const fetchHistoricalData = async () => {
-        let dataArr = [];
+        if (coinId != null) {
+          let historicalDataURL = `${apiUrl}/products/${coinId}/candles?granularity=86400`;
+          let dataArr = [];
         await fetch(historicalDataURL)
           .then((res) => res.json())
           .then((data) => (dataArr = data));
-
         let formattedData = formatChartData(dataArr);
         setpastData(formattedData);
+        } else {
+          console.log(`${coinId} is empty.`)
+        }
       };
 
       fetchHistoricalData();
 
-      // ? WHEN
-      socket.current.onmessage = (e) => {
-        let data = JSON.parse(e.data);
+      // ? WHEN WEBSOCKET RESPONDS, PARSE THE RESPONSE
+      socket.current.onmessage = (messageEvent: MessageEvent) => {
+        let data = JSON.parse(messageEvent.data);
+
+        // ? Removed non-ticker messageEvents
         if (data.type !== "ticker") {
-          console.log("non-ticker event", e);
+          console.log("non-ticker event, discarding...", messageEvent);
           return;
         }
 
+        // ? Only save currencies that satisfy coinId
         if (data.product_id === coinId) {
           setprice(data.price);
         }
@@ -124,13 +130,13 @@ export default function Dashboard() {
   }, [coinId]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    let unsubMsg = {
-      type: "unsubscribe",
-      product_ids: [coinId],
-      channels: ["ticker"],
-    };
-    let unsub = JSON.stringify(unsubMsg);
-    socket.current.send(unsub);
+    // let unsubMsg = {
+    //   type: "unsubscribe",
+    //   product_ids: [coinId],
+    //   channels: ["ticker"],
+    // };
+    // let unsub = JSON.stringify(unsubMsg);
+    // socket.current.send(unsub);
     setCoinId(e.target.value);
   };
 
@@ -141,19 +147,20 @@ export default function Dashboard() {
     <div className={styles.container}>
       {
         <select
+          className={styles.select}
           placeholder="Select a crypto/fiat pair..."
           name="currency"
-          value={coinId}
+          defaultValue={coinId}
           onChange={handleSelect}
         >
-          <option value="" disabled selected>
+          <option defaultValue="Select a crypto-pair">
             Select a crypto-pair
           </option>
-          {currencies.map((cur, idx) => {
+          {currencies.map((currency, id) => {
             return (
               <>
-                <option key={idx} value={cur.id}>
-                  {cur.display_name}
+                <option key={id} value={currency.id}>
+                  {currency.display_name}
                 </option>
               </>
             );
@@ -162,7 +169,7 @@ export default function Dashboard() {
       }
       <div className={styles.Dashboard}>
         <CoinChart price={price} data={pastData} />
-        <CoinList coins={coins} />
+        {/* <CoinList coins={coins} /> */}
       </div>
     </div>
   );
