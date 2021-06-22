@@ -1,12 +1,12 @@
 
-export const formatChartData = (data: any) => {
+export const formatChartData = (data: any[]) => {
     let finalData = {
       labels: [],
       datasets: [
         {
           label: "Price",
           data: [],
-          // borderColor: "rgba(0, 99, 132, 0.8)",
+          borderColor: "rgba(0, 99, 132, 0.8)",
           fill: false
         }
       ]
