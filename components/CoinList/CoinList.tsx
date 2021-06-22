@@ -1,6 +1,6 @@
 import { Coin } from "../Coin/Coin";
 import { Coin as CoinT } from "../../interfaces/Coin.d";
-import styles from "./CoinList.module.css";
+import styles from "./CoinList.module.scss";
 
 interface CoinListProps {
   coins?: Array<CoinT>;
