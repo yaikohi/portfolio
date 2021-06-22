@@ -11,6 +11,11 @@
     border-radius: 5px;
     background-color: grey;
     width: 190px;
+    color: white;
+    &:visited {
+        color: white;
+        text-decoration: none;
+    }
 }
 
 .list {

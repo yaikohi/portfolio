@@ -1,6 +1,6 @@
 import { Coin as CoinProps } from "../../interfaces/Coin.d";
 import Link from "next/link";
-import styles from "./Coin.module.css";
+import styles from "./Coin.module.scss";
 
 export const Coin = ({
   name,
@@ -12,6 +12,7 @@ export const Coin = ({
   return (
     <div className={styles.coin}>
       <div className={styles.title}>
+        {/* // todo: Add a detailed page for every coin on this list. */}
         <Link href="/">
           <a>{name}</a>
         </Link>
