@@ -89,7 +89,8 @@ export default function Dashboard() {
         socket.current.send(wsSubMsg);
       };
 
-      // ? SAVING THE HISTORICAL PRICE DATA OF A COIN
+      // ? Saves the 'old' coin-data for the graph to visualize. 
+      // Todo: Needs refactoring.
       const fetchHistoricalData = async () => {
         if (coinId != null) {
           let historicalDataURL = `${apiUrl}/products/${coinId}/candles?granularity=86400`;
@@ -106,17 +107,14 @@ export default function Dashboard() {
 
       fetchHistoricalData();
 
-      // ? WHEN WEBSOCKET RESPONDS, PARSE THE RESPONSE
       socket.current.onmessage = (messageEvent: MessageEvent) => {
         let data = JSON.parse(messageEvent.data);
 
-        // ? Removed non-ticker messageEvents
         if (data.type !== "ticker") {
           console.log("non-ticker event, discarding...", messageEvent);
           return;
         }
 
-        // ? Only save currencies that satisfy coinId
         if (data.product_id === coinId) {
           setprice(data.price);
         }
@@ -125,13 +123,13 @@ export default function Dashboard() {
   }, [coinId]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    // let unsubMsg = {
-    //   type: "unsubscribe",
-    //   product_ids: [coinId],
-    //   channels: ["ticker"],
-    // };
-    // let unsub = JSON.stringify(unsubMsg);
-    // socket.current.send(unsub);
+    // // let unsubMsg = {
+    // //   type: "unsubscribe",
+    // //   product_ids: [coinId],
+    // //   channels: ["ticker"],
+    // // };
+    // // let unsub = JSON.stringify(unsubMsg);
+    // // socket.current.send(unsub);
     setCoinId(e.target.value);
   };
 
@@ -164,7 +162,7 @@ export default function Dashboard() {
       }
       <div className={styles.Dashboard}>
         <CoinChart price={price} data={pastData} />
-        {/* <CoinList coins={coins} /> */}
+        <CoinList coins={coins} />
       </div>
     </div>
   );
