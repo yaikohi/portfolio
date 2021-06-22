@@ -39,20 +39,19 @@ export default function Dashboard() {
   useEffect(() => {
     socket.current = new WebSocket(wsUrl);
 
-    // ? COLLECTS THE COIN PAIRS THROUGH AN API CALL
     let pairs = [];
-
     const fetchPairs = async () => {
       await fetch(apiUrl + "/products")
         .then((res) => res.json())
         .then((data) => (pairs = data));
-      // ? Only save the currencies that pair with EUR
+      // ? saves the currencies that have a pair with EUR
       let filtered = pairs.filter((coin) => {
         if (coin.quote_currency === "EUR") {
           return coin;
         }
       });
-      // ? FILTERS THE COIN PAIRS ALPHABETICALLY
+
+      // ? filters coin pairs alphabetically
       filtered = filtered.sort((firstEl, secondEl) => {
         if (firstEl.base_currency < secondEl.base_currency) {
           return -1;
@@ -62,36 +61,32 @@ export default function Dashboard() {
         }
         return 0;
       });
-      // ? ADDS THE FILTERED COIN PAIRS TO THE CURRENCIES STATE
+      // ? adds the filtered coin pairs to the `currencies` state
       setcurrencies(filtered);
       first.current = true;
     };
-    // ? FUNCTION CALL
     fetchPairs();
   }, []);
 
   useEffect(() => {
-    // ? IF FIRST.CURRENT = FALSE; initializes the first render
     if (!first.current) {
       console.log("returning to the first render");
       return;
     } else {
-      // ? LIST OF CURRENCY ID'S TO SUBSCRIBE TO
+      // ? creates a list of currencies
       let currenciesList = [];
       currencies.map((currency) => {
         currenciesList.push(currency.id);
       });
 
-      // ? SUBSCRIPTION MESSAGE TO THE COINBASE WEBSOCKET
-      let wsSubMsg = {
+      let wsSubMsg = JSON.stringify({
         type: "subscribe",
         product_ids: currenciesList,
         channels: ["ticker"],
-      };
+      });
 
-      // ? SENDING THE MESSAGE
       socket.current.onopen = () => {
-        socket.current.send(JSON.stringify(wsSubMsg));
+        socket.current.send(wsSubMsg);
       };
 
       // ? SAVING THE HISTORICAL PRICE DATA OF A COIN
@@ -99,13 +94,13 @@ export default function Dashboard() {
         if (coinId != null) {
           let historicalDataURL = `${apiUrl}/products/${coinId}/candles?granularity=86400`;
           let dataArr = [];
-        await fetch(historicalDataURL)
-          .then((res) => res.json())
-          .then((data) => (dataArr = data));
-        let formattedData = formatChartData(dataArr);
-        setpastData(formattedData);
+          await fetch(historicalDataURL)
+            .then((res) => res.json())
+            .then((data) => (dataArr = data));
+          let formattedData = formatChartData(dataArr);
+          setpastData(formattedData);
         } else {
-          console.log(`${coinId} is empty.`)
+          console.log(`${coinId} is empty.`);
         }
       };
 
