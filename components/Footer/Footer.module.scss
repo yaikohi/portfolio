@@ -1,0 +1,19 @@
+.Footer {
+    background-color: black;
+    color: white;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & p {
+        margin: 10px;
+        text-decoration: underline;
+    }
+    & a {
+        margin: 10px;
+        &:visited {
+            color: white;
+            text-decoration: underline;
+        }
+    }
+}

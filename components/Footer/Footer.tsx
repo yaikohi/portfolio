@@ -1,4 +1,4 @@
-import styles from "./Footer.module.css";
+import styles from "./Footer.module.scss";
 import Link from "next/link";
 
 interface FooterProps {
@@ -8,7 +8,7 @@ interface FooterProps {
 export const Footer = ({ ...props }: FooterProps) => {
   return (
     <div className={styles.Footer}>
-      <p>Erik Beem 2021 All Rights Reserved</p>
+      <p>omg me</p>
       <Link href="/">
         <a>Privacy policy</a>
       </Link>
