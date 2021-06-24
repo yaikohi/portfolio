@@ -22,14 +22,20 @@ WORKDIR /app
 
 ENV NODE_ENV production
 
-COPY --from=builder /app/next.config.js ./
-COPY --from=builder /app/tsconfig.json ./
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/. ./
 
-EXPOSE 3030
+# COPY --from=builder /app/tsconfig.json ./
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/interface ./interface
+# COPY --from=builder /app/components ./components
+# COPY --from=builder /app/styles ./styles
+# COPY --from=builder /app/pages ./pages
+# COPY --from=builder /app/.next ./.next
+# COPY --from=builder /app/node_modules ./node_modules
+# COPY --from=builder /app/package.json ./package.json
+# COPY --from=builder /app/package.json ./package.json
 
-CMD ["npm", "run", "dev"]
+# EXPOSE 4040 is for documentation. It does not do anything on itself.
+EXPOSE 3000
+
+CMD ["npm", "start"]
