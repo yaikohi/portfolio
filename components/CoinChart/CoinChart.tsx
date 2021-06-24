@@ -24,7 +24,7 @@ export function CoinChart({ price, data }: CoinChartProps) {
 
   if (price === "0.00") {
     // ? User needs to select a coin in the dashboard-parent component before the graph+price can be rendered.
-    return <><p>Please elect a coin.</p> </>;
+    return <><p>Please select a coin.</p> </>;
   }
   return (
     <div className={styles.container}>
